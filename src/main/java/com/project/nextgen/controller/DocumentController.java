@@ -21,11 +21,11 @@ public class DocumentController {
 	@Autowired
     private DocumentService documentService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> upload(
-            @RequestParam MultipartFile file,
-            @RequestParam String entityId
-    ) throws Exception {
+	@PostMapping("/upload")
+	public ResponseEntity<String> upload(
+	        @RequestParam MultipartFile file,
+	        @RequestParam String entityId
+	) throws Exception {
 
         String docId = documentService.upload(file,entityId);
 

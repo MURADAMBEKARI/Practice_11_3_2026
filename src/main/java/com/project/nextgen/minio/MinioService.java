@@ -2,6 +2,7 @@ package com.project.nextgen.minio;
 
 import java.io.InputStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MinioService {
 
+	@Autowired
     private MinioClient minioClient;
 
     @Value("${minio.bucket}")

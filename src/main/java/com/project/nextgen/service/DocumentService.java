@@ -3,6 +3,8 @@ package com.project.nextgen.service;
 import java.time.LocalDateTime;
 
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,9 +21,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DocumentService {
 
+	@Autowired
     private  DocumentRepository documentRepository;
+	
+	@Autowired
     private  DocumentVersionRepository versionRepository;
+	
+	@Autowired
     private  MinioService minioService;
+	
+	@Autowired
     private  KafkaProducerService kafkaProducerService;
 
     public String upload(MultipartFile file,String entityId) throws Exception {
