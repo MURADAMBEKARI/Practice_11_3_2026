@@ -1,7 +1,6 @@
 package com.project.nextgen.service;
 
 import java.time.LocalDateTime;
-
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import com.project.nextgen.kafka.KafkaProducerService;
 import com.project.nextgen.minio.MinioService;
 import com.project.nextgen.model.DocumentData;
 import com.project.nextgen.model.DocumentVersion;
+import com.project.nextgen.model.UploadResponse;
 import com.project.nextgen.repository.DocumentRepository;
 import com.project.nextgen.repository.DocumentVersionRepository;
 
@@ -33,7 +33,10 @@ public class DocumentService {
 	@Autowired
     private  KafkaProducerService kafkaProducerService;
 
-    public String upload(MultipartFile file,String entityId) throws Exception {
+	
+    //public UploadResponse upload(MultipartFile file,String entityId) throws Exception {
+	
+    	public UploadResponse upload(MultipartFile file,String entityId, String customerId) throws Exception {
 
         String documentId = UUID.randomUUID().toString();
 
@@ -41,12 +44,28 @@ public class DocumentService {
 
         String objectName = "documents/"+documentId+"/v1";
 
+//        minioService.uploadFile(
+//                objectName,
+//                file.getInputStream(),
+//                file.getSize(),
+//                file.getContentType()
+//        );
+//        
+//        String downloadUrl = minioService.getDownloadUrl(objectName);
+        
         minioService.uploadFile(
+                customerId,                 // ✅ NEW (important)
                 objectName,
                 file.getInputStream(),
                 file.getSize(),
                 file.getContentType()
         );
+
+        String downloadUrl = minioService.getDownloadUrl(
+                customerId,                 // ✅ NEW (important)
+                objectName
+        );
+
 
         DocumentData document = new DocumentData();
 
@@ -74,6 +93,12 @@ public class DocumentService {
 
         kafkaProducerService.publishDocumentEvent(v);
 
-        return documentId;
+//        return documentId;
+        
+        UploadResponse response = new UploadResponse();
+        response.setDocumentId(documentId);
+        response.setDownloadUrl(downloadUrl);
+ 
+        return response;
     }
 }

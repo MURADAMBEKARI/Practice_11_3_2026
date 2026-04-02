@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.project.nextgen.model.UploadResponse;
 import com.project.nextgen.service.DocumentService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,16 +22,30 @@ public class DocumentController {
 	@Autowired
     private DocumentService documentService;
 
+//	@PostMapping("/upload")
+//	public ResponseEntity<UploadResponse> upload(
+//	        @RequestParam MultipartFile file,
+//	        @RequestParam String entityId
+//	) throws Exception {
+//
+//		UploadResponse docId = documentService.upload(file,entityId);
+//        System.out.println("docId : "+docId);
+//        return ResponseEntity.ok(docId);
+//    }
+	
+	
 	@PostMapping("/upload")
-	public ResponseEntity<String> upload(
+	public ResponseEntity<UploadResponse> upload(
 	        @RequestParam MultipartFile file,
-	        @RequestParam String entityId
+	        @RequestParam String entityId,
+	        @RequestParam String customerId   // ✅ NEW
 	) throws Exception {
 
-        String docId = documentService.upload(file,entityId);
+	    UploadResponse docId = documentService.upload(file, entityId, customerId);
 
-        return ResponseEntity.ok(docId);
-    }
+	    System.out.println("docId : " + docId);
+	    return ResponseEntity.ok(docId);
+	}
     
     @GetMapping("/homepage")
     public ResponseEntity<String> homepage()
