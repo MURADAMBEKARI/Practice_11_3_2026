@@ -18,6 +18,11 @@ public class DocumentVersion {
 
     // Logical document reference
     private String documentId;
+    
+    // 🔥 NEW: tenantId (multi-tenant support)
+    private String tenantId;
+    
+    private String scanStatus; // PENDING, CLEAN, INFECTED
 
     // Version number
     private int version;
@@ -170,17 +175,32 @@ public class DocumentVersion {
 		this.createdAt = createdAt;
 	}
 
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	public String getScanStatus() {
+		return scanStatus;
+	}
+
+	public void setScanStatus(String scanStatus) {
+		this.scanStatus = scanStatus;
+	}
+
 	@Override
 	public String toString() {
-		return "DocumentVersion [id=" + id + ", documentId=" + documentId + ", version=" + version + ", fileName="
-				+ fileName + ", originalFileName=" + originalFileName + ", contentType=" + contentType + ", fileSize="
-				+ fileSize + ", bucketName=" + bucketName + ", objectName=" + objectName + ", checksum=" + checksum
-				+ ", checksumAlgorithm=" + checksumAlgorithm + ", ocrStatus=" + ocrStatus + ", correlationId="
-				+ correlationId + ", isLatest=" + isLatest + ", createdAt=" + createdAt + "]";
+		return "DocumentVersion [id=" + id + ", documentId=" + documentId + ", tenantId=" + tenantId + ", scanStatus="
+				+ scanStatus + ", version=" + version + ", fileName=" + fileName + ", originalFileName="
+				+ originalFileName + ", contentType=" + contentType + ", fileSize=" + fileSize + ", bucketName="
+				+ bucketName + ", objectName=" + objectName + ", checksum=" + checksum + ", checksumAlgorithm="
+				+ checksumAlgorithm + ", ocrStatus=" + ocrStatus + ", correlationId=" + correlationId + ", isLatest="
+				+ isLatest + ", createdAt=" + createdAt + "]";
 	}
-    
-    
-    
-    
+
+	
     
 }

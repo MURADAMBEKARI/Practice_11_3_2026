@@ -6,6 +6,7 @@ import lombok.Data;
 public class UploadResponse {
  
     private String documentId;
+    
     private String downloadUrl;
     
 	public String getDocumentId() {

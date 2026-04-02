@@ -22,10 +22,12 @@ public class DocumentData {
 
     // Document classification
     private String documentType;
+    
     private String category;
 
     // Business mapping
     private String businessEntityType;
+    
     private String businessEntityId;
 
     // Document status
@@ -36,7 +38,9 @@ public class DocumentData {
 
     // Audit fields
     private LocalDateTime createdAt;
+    
     private LocalDateTime updatedAt;
+    
 	public String getId() {
 		return id;
 	}
@@ -103,6 +107,7 @@ public class DocumentData {
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+	
 	@Override
 	public String toString() {
 		return "DocumentData [id=" + id + ", documentId=" + documentId + ", tenantId=" + tenantId + ", documentType="

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,93 +13,96 @@ import com.project.nextgen.minio.MinioService;
 import com.project.nextgen.model.DocumentData;
 import com.project.nextgen.model.DocumentVersion;
 import com.project.nextgen.model.UploadResponse;
-import com.project.nextgen.repository.DocumentRepository;
-import com.project.nextgen.repository.DocumentVersionRepository;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class DocumentService {
 
-	@Autowired
-    private  DocumentRepository documentRepository;
-	
-	@Autowired
-    private  DocumentVersionRepository versionRepository;
-	
-	@Autowired
-    private  MinioService minioService;
-	
-	@Autowired
-    private  KafkaProducerService kafkaProducerService;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
-	
-    //public UploadResponse upload(MultipartFile file,String entityId) throws Exception {
-	
-    	public UploadResponse upload(MultipartFile file,String entityId, String customerId) throws Exception {
+    @Autowired
+    private MinioService minioService;
 
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
+
+    // ✅ Create collections for new tenant
+    public void createCollectionForTenant(String tenantId) {
+
+        String docCollection = "document_" + tenantId;
+        String versionCollection = "document_versions_" + tenantId;
+
+        if (!mongoTemplate.collectionExists(docCollection)) {
+            mongoTemplate.createCollection(docCollection);
+        }
+
+        if (!mongoTemplate.collectionExists(versionCollection)) {
+            mongoTemplate.createCollection(versionCollection);
+        }
+    }
+
+    // ✅ Upload API
+    public UploadResponse upload(MultipartFile file, String entityId, String tenantId) throws Exception {
+
+        // 🔥 Step 1: Ensure collections exist
+        createCollectionForTenant(tenantId);
+
+        // 🔥 Step 2: Prepare identifiers
         String documentId = UUID.randomUUID().toString();
-
         int version = 1;
 
-        String objectName = "documents/"+documentId+"/v1";
+        String objectName = tenantId + "/" + documentId + "/v" + version;
 
-//        minioService.uploadFile(
-//                objectName,
-//                file.getInputStream(),
-//                file.getSize(),
-//                file.getContentType()
-//        );
-//        
-//        String downloadUrl = minioService.getDownloadUrl(objectName);
-        
+        // 🔥 Step 3: Upload to MinIO (bucket per customer)
         minioService.uploadFile(
-                customerId,                 // ✅ NEW (important)
+                tenantId,
                 objectName,
                 file.getInputStream(),
                 file.getSize(),
                 file.getContentType()
         );
 
-        String downloadUrl = minioService.getDownloadUrl(
-                customerId,                 // ✅ NEW (important)
-                objectName
-        );
+        String downloadUrl = minioService.getDownloadUrl(tenantId, objectName);
 
+        // 🔥 Step 4: Dynamic collection names
+        String docCollection = "document_" + tenantId;
+        String versionCollection = "document_versions_" + tenantId;
 
+        // 🔥 Step 5: Save Document (Mongo)
         DocumentData document = new DocumentData();
-
         document.setDocumentId(documentId);
         document.setBusinessEntityId(entityId);
         document.setLatestVersion(version);
         document.setStatus("ACTIVE");
         document.setCreatedAt(LocalDateTime.now());
 
-        documentRepository.save(document);
+        mongoTemplate.save(document, docCollection);
 
+        // 🔥 Step 6: Save Version (Mongo)
         DocumentVersion v = new DocumentVersion();
-
+        v.setTenantId(tenantId);
         v.setDocumentId(documentId);
         v.setVersion(version);
         v.setFileName(file.getOriginalFilename());
         v.setContentType(file.getContentType());
         v.setFileSize(file.getSize());
-        v.setBucketName("documents");
+        v.setBucketName(tenantId); // bucket = tenantId
         v.setObjectName(objectName);
         v.setOcrStatus("PENDING");
         v.setCreatedAt(LocalDateTime.now());
 
-        versionRepository.save(v);
+        mongoTemplate.save(v, versionCollection);
 
-        kafkaProducerService.publishDocumentEvent(v);
-
-//        return documentId;
+        v.setScanStatus("PENDING");
         
+        // 🔥 Step 7: Send Kafka Event
+        kafkaProducerService.publishDocumentEvent(v);
+        
+        // 🔥 Step 8: Response
         UploadResponse response = new UploadResponse();
         response.setDocumentId(documentId);
         response.setDownloadUrl(downloadUrl);
- 
+
         return response;
     }
 }

@@ -24,8 +24,8 @@ public class MinioService {
     // ================================
     // 🔹 1. Generate Bucket per Customer
     // ================================
-    private String getBucketName(String customerId) {
-        return "customer-" + customerId;
+    private String getBucketName(String tenantId) {
+        return "tenant-" + tenantId;
     }
 
     // ================================
@@ -46,13 +46,13 @@ public class MinioService {
     // ================================
     // 🔹 3. Upload File (MULTI-TENANT)
     // ================================
-    public void uploadFile(String customerId,
+    public void uploadFile(String tenantId,
                            String objectName,
                            InputStream stream,
                            long size,
                            String contentType) throws Exception {
 
-        String bucketName = getBucketName(customerId);
+        String bucketName = getBucketName(tenantId);
         System.out.println("Creating/checking bucket: " + bucketName);
         // Ensure bucket exists
         createBucketIfNotExists(bucketName);
@@ -70,9 +70,9 @@ public class MinioService {
     // ================================
     // 🔹 4. Get Download URL
     // ================================
-    public String getDownloadUrl(String customerId, String objectName) throws Exception {
+    public String getDownloadUrl(String tenantId, String objectName) throws Exception {
 
-        String bucketName = getBucketName(customerId);
+        String bucketName = getBucketName(tenantId);
         System.out.println("getDownloadUrl bucketName: " + bucketName);
 
         return minioClient.getPresignedObjectUrl(
@@ -82,6 +82,15 @@ public class MinioService {
                         .object(objectName)
                         .expiry(1, TimeUnit.HOURS)
                         .build()
+        );
+    }
+
+    public InputStream getFile(String objectName) throws Exception {
+        return minioClient.getObject(
+            GetObjectArgs.builder()
+                .bucket("documents")
+                .object(objectName)
+                .build()
         );
     }
 }
