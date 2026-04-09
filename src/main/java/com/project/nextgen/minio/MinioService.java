@@ -88,7 +88,7 @@ public class MinioService {
     public InputStream getFile(String objectName) throws Exception {
         return minioClient.getObject(
             GetObjectArgs.builder()
-                .bucket("documents")
+               .bucket("tenant-107") //currently hardcoded
                 .object(objectName)
                 .build()
         );

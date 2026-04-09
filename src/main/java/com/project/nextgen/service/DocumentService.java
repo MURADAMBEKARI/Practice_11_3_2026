@@ -51,19 +51,44 @@ public class DocumentService {
         String documentId = UUID.randomUUID().toString();
         int version = 1;
 
-        String objectName = tenantId + "/" + documentId + "/v" + version;
+//        String objectName = tenantId + "/" + documentId + "/v" + version;
+//
+//        // 🔥 Step 3: Upload to MinIO (bucket per customer)
+//        minioService.uploadFile(
+//                tenantId,
+//                objectName,
+//                file.getInputStream(),
+//                file.getSize(),
+//                file.getContentType()
+//        );
+        
 
-        // 🔥 Step 3: Upload to MinIO (bucket per customer)
+        // ✅ Get original file name
+        String fileName = file.getOriginalFilename();
+
+        // (Optional but recommended) clean filename
+        fileName = fileName.replaceAll("\\s+", "_");
+
+        // ✅ FULL object path (IMPORTANT FIX)
+        String objectName = tenantId + "/" + documentId + "/v" + version + "/" + fileName;
+
+        // Step 3: Upload to MinIO
         minioService.uploadFile(
-                tenantId,
-                objectName,
+                tenantId,                 
+                objectName,              
                 file.getInputStream(),
                 file.getSize(),
                 file.getContentType()
         );
 
+        // ✅ Send correct path in event
+        System.out.println("inside DocumentService UPLOAD PATH: " + objectName);
+
         String downloadUrl = minioService.getDownloadUrl(tenantId, objectName);
 
+	    System.out.println("inside DocumentService  Download file MINIO  "+downloadUrl);
+
+        
         // 🔥 Step 4: Dynamic collection names
         String docCollection = "document_" + tenantId;
         String versionCollection = "document_versions_" + tenantId;
@@ -97,11 +122,15 @@ public class DocumentService {
         
         // 🔥 Step 7: Send Kafka Event
         kafkaProducerService.publishDocumentEvent(v);
-        
+	    System.out.println("inside DocumentService  After step 7 ");
+
         // 🔥 Step 8: Response
         UploadResponse response = new UploadResponse();
         response.setDocumentId(documentId);
         response.setDownloadUrl(downloadUrl);
+        
+	    System.out.println("inside DocumentService  After step 8 ");
+
 
         return response;
     }

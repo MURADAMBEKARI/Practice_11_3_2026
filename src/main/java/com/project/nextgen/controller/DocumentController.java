@@ -38,19 +38,19 @@ public class DocumentController {
 	public ResponseEntity<UploadResponse> upload(
 	        @RequestParam MultipartFile file,
 	        @RequestParam String entityId,
-	        @RequestParam String customerId   // ✅ NEW
+	        @RequestParam String tenantId   
 	) throws Exception {
 
-	    UploadResponse docId = documentService.upload(file, entityId, customerId);
+	    UploadResponse docId = documentService.upload(file, entityId, tenantId);
 
-	    System.out.println("docId : " + docId);
+	    System.out.println("inside DocumentController docId : " + docId);
 	    return ResponseEntity.ok(docId);
 	}
     
     @GetMapping("/homepage")
     public ResponseEntity<String> homepage()
     {
-    	System.err.println("Hello 1");
+    	System.err.println("inside DocumentController homepage ");
     	return ResponseEntity.ok("Hello from Document Service");
     }
  

@@ -9,6 +9,7 @@ package com.project.nextgen.virusScan;
  */
 
 import java.io.InputStream;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -34,24 +35,56 @@ public class DocumentScanConsumer {
     public void consume(DocumentVersion event) {
  
         try {
+        	
             // 1. Download file from MinIO
+    	    System.out.println("inside DocumentScanConsumer Download file from MinIO  "+event);
+    	    
+    	    System.out.println("inside DocumentScanConsumer download PATH: " + event.getObjectName());
+
             InputStream inputStream = minioService.getFile(event.getObjectName());
  
             // 2. Scan file
+    	    System.out.println("inside DocumentScanConsumer Scan file");
+
             boolean isClean = virusScanService.scan(inputStream);
  
             // 3. Update status
-            DocumentVersion v = versionRepository
-                    .findByDocumentIdAndVersion(event.getDocumentId(), event.getVersion())
-                    .orElseThrow();
- 
-            if (isClean) {
-                v.setScanStatus("CLEAN");
+    	    System.out.println("inside DocumentScanConsumer Update status");
+    	    System.out.println("event value" +event.getDocumentId()+" -- "+ event.getVersion());
+
+//            DocumentVersion v = versionRepository
+//                    .findByDocumentIdAndVersion(event.getDocumentId(), event.getVersion())
+//                    .orElseThrow();
+//            
+            Optional<DocumentVersion> optional = versionRepository
+                    .findByDocumentIdAndVersion(event.getDocumentId(), event.getVersion());
+
+            if (optional.isPresent()) {
+                DocumentVersion v = optional.get();
+                System.out.println("Document found: " + v);
+
+                if (isClean) {
+                    v.setScanStatus("CLEAN");
+                    v.setOcrStatus("Clean");
+                } else {
+                    v.setScanStatus("INFECTED");
+                    v.setOcrStatus("Infected");
+
+                }
+                versionRepository.save(v);
+        	    System.out.println("inside DocumentScanConsumer documentversion " +v);
+
+                // update status here
             } else {
-                v.setScanStatus("INFECTED");
+                System.out.println("❌ Document NOT FOUND in DB for ID: "
+                        + event.getDocumentId() + " version: " + event.getVersion());
             }
+            
+
  
-            versionRepository.save(v);
+        
+    	    System.out.println("inside DocumentScanConsumer before saving ");
+
  
         } catch (Exception e) {
             e.printStackTrace();

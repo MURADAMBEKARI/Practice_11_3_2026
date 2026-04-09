@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 @Data
-@Document(collection = "document_versions")
+@Document(collection = "document_versions_107")
 public class DocumentVersion {
 
     @Id
