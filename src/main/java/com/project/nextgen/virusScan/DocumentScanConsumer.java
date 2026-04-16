@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.project.nextgen.minio.MinioService;
 import com.project.nextgen.model.DocumentVersion;
 import com.project.nextgen.repository.DocumentVersionRepository;
+import com.project.nextgen.service.DocumentMongoService;
  
 @Service
 public class DocumentScanConsumer {
@@ -27,6 +28,9 @@ public class DocumentScanConsumer {
  
     @Autowired
     private VirusScanService virusScanService;
+    
+    @Autowired
+    private DocumentMongoService documentMongoService;
  
     @Autowired
     private DocumentVersionRepository versionRepository;
@@ -47,6 +51,8 @@ public class DocumentScanConsumer {
     	    System.out.println("inside DocumentScanConsumer Scan file");
 
             boolean isClean = virusScanService.scan(inputStream);
+    	    System.out.println("inside DocumentScanConsumer Scan file isClean :"+isClean);
+
  
             // 3. Update status
     	    System.out.println("inside DocumentScanConsumer Update status");
@@ -56,8 +62,33 @@ public class DocumentScanConsumer {
 //                    .findByDocumentIdAndVersion(event.getDocumentId(), event.getVersion())
 //                    .orElseThrow();
 //            
-            Optional<DocumentVersion> optional = versionRepository
-                    .findByDocumentIdAndVersion(event.getDocumentId(), event.getVersion());
+            System.out.println("event.getDocumentId(), event.getVersion() :"+event.getDocumentId()+" "+event.getVersion());
+
+//    	    Optional<DocumentVersion> optional = versionRepository
+//                    .findByDocumentIdAndVersion(event.getDocumentId(), event.getVersion());
+//    	    
+            
+            
+            System.out.println("DocId: " + event.getDocumentId());
+            System.out.println("Version: " + event.getVersion());
+            System.out.println("TenantId: " + event.getTenantId());
+
+            
+//    	    Optional<DocumentVersion> optional = versionRepository
+//    	    	    .findByTenantIdAndDocumentIdAndVersion(
+//    	    	        event.getTenantId(),
+//    	    	        event.getDocumentId(),
+//    	    	        event.getVersion()
+//    	    	    );
+    	    
+    	    
+    	       Optional<DocumentVersion> optional = documentMongoService
+               	    .findByTenantIdAndDocumentIdAndVersion(
+               	        event.getTenantId(),
+               	        event.getDocumentId(),
+               	        event.getVersion()
+               	    );
+            System.out.println("optional :"+optional);
 
             if (optional.isPresent()) {
                 DocumentVersion v = optional.get();
@@ -80,10 +111,7 @@ public class DocumentScanConsumer {
                         + event.getDocumentId() + " version: " + event.getVersion());
             }
             
-
- 
-        
-    	    System.out.println("inside DocumentScanConsumer before saving ");
+            System.out.println("inside DocumentScanConsumer after saving ");
 
  
         } catch (Exception e) {

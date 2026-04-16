@@ -86,9 +86,11 @@ public class MinioService {
     }
 
     public InputStream getFile(String objectName) throws Exception {
+    	System.out.println("objectName : "+objectName);
+    	String tenantId = objectName.split("/")[0];
         return minioClient.getObject(
             GetObjectArgs.builder()
-               .bucket("tenant-107") //currently hardcoded
+               .bucket("tenant-" + tenantId) //currently hardcoded
                 .object(objectName)
                 .build()
         );

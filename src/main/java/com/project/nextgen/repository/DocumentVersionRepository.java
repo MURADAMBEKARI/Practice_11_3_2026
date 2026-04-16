@@ -12,4 +12,6 @@ public interface DocumentVersionRepository extends MongoRepository<DocumentVersi
     List<DocumentVersion> findByDocumentId(String documentId);
     
     Optional<DocumentVersion> findByDocumentIdAndVersion(String documentId, int version);
+
+	Optional<DocumentVersion> findByTenantIdAndDocumentIdAndVersion(String tenantId, String documentId, int version);
 }
