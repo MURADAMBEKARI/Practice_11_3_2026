@@ -18,6 +18,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
+import com.project.nextgen.model.DocumentEventDto;
+
 @Configuration
 public class KafkaConfig {
 
@@ -46,17 +48,20 @@ public class KafkaConfig {
     
     
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public ConsumerFactory<String, DocumentEventDto> consumerFactory() {
 
-        JsonDeserializer<Object> deserializer = new JsonDeserializer<>(Object.class);
-        deserializer.addTrustedPackages("com.project.nextgen.model"); // ✅ important
+        JsonDeserializer<DocumentEventDto> deserializer =
+                new JsonDeserializer<>(DocumentEventDto.class);
+
+        deserializer.addTrustedPackages("*"); // or specific dto package
+        deserializer.setUseTypeMapperForKey(false);
 
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "nextgen-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
         return new DefaultKafkaConsumerFactory<>(
                 config,
@@ -67,10 +72,13 @@ public class KafkaConfig {
     
     
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, DocumentEventDto> kafkaListenerContainerFactory() {
+
+        ConcurrentKafkaListenerContainerFactory<String, DocumentEventDto> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
+
         factory.setConsumerFactory(consumerFactory());
+
         return factory;
     }
 }

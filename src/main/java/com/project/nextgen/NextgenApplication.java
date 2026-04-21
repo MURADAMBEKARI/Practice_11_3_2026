@@ -13,3 +13,12 @@ public class NextgenApplication {
 	}
 
 }
+
+
+//Upload → MinIO ✅
+//Save → MongoDB ✅
+//Send → Kafka ✅
+//Consume → Virus service ✅
+//Fetch file → MinIO ✅
+//Scan → ClamAV ✅
+//Update DB ✅

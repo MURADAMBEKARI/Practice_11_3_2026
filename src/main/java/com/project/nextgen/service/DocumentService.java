@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.project.nextgen.kafka.KafkaProducerService;
 import com.project.nextgen.minio.MinioService;
 import com.project.nextgen.model.DocumentData;
+import com.project.nextgen.model.DocumentEventDto;
 import com.project.nextgen.model.DocumentVersion;
 import com.project.nextgen.model.UploadResponse;
 
@@ -121,7 +122,21 @@ public class DocumentService {
         v.setScanStatus("PENDING");
         
         // 🔥 Step 7: Send Kafka Event
-        kafkaProducerService.publishDocumentEvent(v);
+        
+        DocumentEventDto event = new DocumentEventDto();
+
+        event.setDocumentId(v.getDocumentId());
+        event.setTenantId(v.getTenantId());
+        event.setVersion(v.getVersion());
+        event.setFileName(v.getFileName());
+        event.setContentType(v.getContentType());
+        event.setFileSize(v.getFileSize());
+        event.setBucketName(v.getBucketName());
+        event.setObjectName(v.getObjectName());
+        event.setScanStatus("PENDING");
+        event.setCorrelationId(v.getCorrelationId());
+        
+        kafkaProducerService.publishDocumentEvent(event);
 	    System.out.println("inside DocumentService  After step 7 ");
 
         // 🔥 Step 8: Response

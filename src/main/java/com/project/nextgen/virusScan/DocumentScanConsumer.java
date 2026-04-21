@@ -35,7 +35,7 @@ public class DocumentScanConsumer {
     @Autowired
     private DocumentVersionRepository versionRepository;
  
-    @KafkaListener(topics = "document-events", groupId = "scan-group")
+    //@KafkaListener(topics = "document-events", groupId = "scan-group")
     public void consume(DocumentVersion event) {
  
         try {
